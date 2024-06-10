@@ -7,6 +7,7 @@
    *port*
    ping?
    get-whole-block
+   uniq
    u32->n
    n->bytes
    )
@@ -32,6 +33,14 @@
                    ((not tail) (eof-object))
                    (else
                     (bytevector-append this tail))))))))))
+
+    (define (uniq l)
+      (let loop ((l l) (acc ()))
+        (cond
+         ((null? l) acc)
+         ((has? acc (car l)) (loop (cdr l) acc))
+         (else
+          (loop (cdr l) (append acc (list (car l))))))))
 
     (define (u32->n l)
       (bior (<< (lref l 3) 24)

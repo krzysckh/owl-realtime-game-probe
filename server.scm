@@ -30,7 +30,7 @@
                                           ((eqv? 'threads (car* M))
                                            (Mloop p (cdr M)))
                                           (else
-                                           (values p t)))))))
+                                           (values (uniq p) t)))))))
                          (if (eof-object? bvec)
                              (let ((prts (filter (λ (x) (not (eqv? p x))) ports)))
                                (print "SERVER: got eof from " p)
