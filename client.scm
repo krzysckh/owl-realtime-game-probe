@@ -49,10 +49,16 @@
   (set-target-fps! 120)
   (let* ((cs (let ((v (car* (cdr args)))) (if (null? v) "3" v)))
          (color (lref colors (read cs)))
-         (serv (open-connection ip *port*)))
+         (serv (let loop ()
+                 (let ((c (open-connection ip *port*)))
+                   (print c)
+                   (if c c (begin
+                             (print "couldn't connect. retrying.")
+                             (sleep 1000)
+                             (loop)))))))
     (thread 'pinger (pinger serv))
     (with-window
-     sz sz "test"
+     sz sz "client"
      (let loop ((p1 '(0 0)) (rest ()) (fctr 0) (ping 0))
        (lets ((mp (map (λ (x) (max 0 x)) (mouse-pos)))
               (pl pl-c (maybe-get-player serv))
