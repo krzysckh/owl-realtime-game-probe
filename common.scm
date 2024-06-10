@@ -20,16 +20,16 @@
     (define (get-whole-block fd block-size)
       (let ((this (read-bytevector block-size fd)))
         (cond
-         ((eof-object? this) this)
-         ((not this) this)
+         ((eof-object? this) (eof-object))
+         ((not this) (eof-object))
          (else
           (let ((n (sizeb this)))
             (if (eq? n block-size)
                 this
                 (let ((tail (get-whole-block fd (- block-size n))))
                   (cond
-                   ((eof-object? tail) this)
-                   ((not tail) this)
+                   ((eof-object? tail) (eof-object))
+                   ((not tail) (eof-object))
                    (else
                     (bytevector-append this tail))))))))))
 

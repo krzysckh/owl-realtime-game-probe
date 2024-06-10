@@ -1,2 +1,7 @@
 *.~undo-tree~
 *.core
+*.html
+*.js
+*.c
+*.wasm
+*.a

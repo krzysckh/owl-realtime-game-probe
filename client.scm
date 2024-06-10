@@ -33,8 +33,6 @@
 (define ip (bytevector 127 0 0 1))
 ;; (define ip (sys/resolve-host "pub.krzysckh.org"))
 
-(define packets/s 100)
-
 (define (pinger c)
   (let loop ()
     (let ((t1 (time-ms)))
@@ -45,10 +43,13 @@
         (sleep 1000)
         (loop)))))
 
+;; (define packets/s ())
+(define packets/s 100)
 (define (main args)
   (set-target-fps! 120)
-  (let ((color (lref colors (read (car* (cdr args)))))
-        (serv (open-connection ip *port*)))
+  (let* ((cs (let ((v (car* (cdr args)))) (if (null? v) "3" v)))
+         (color (lref colors (read cs)))
+         (serv (open-connection ip *port*)))
     (thread 'pinger (pinger serv))
     (with-window
      sz sz "test"
