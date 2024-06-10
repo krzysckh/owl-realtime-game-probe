@@ -7,10 +7,6 @@
 
 (define sz 400)
 
-(define (fps*)
-  (let ((v (fps)))
-    (if (= v 0) 1 v)))
-
 (define (send-pos c pos color)
   (let ((l (append (n->bytes color 4) (n->bytes (car pos) 4) (n->bytes (cadr pos) 4))))
     (write-bytes c l)))
@@ -28,7 +24,8 @@
               (values (list (u32->n p) (u32->n (cddddr p))) color))))
       (values #f #f)))
 
-;; ((color pos))
+(define (L~ v) (if v v '(0 0)))
+(define (cadr* l) (car* (cdr* l)))
 
 (define ip (bytevector 127 0 0 1))
 ;; (define ip (sys/resolve-host "pub.krzysckh.org"))
@@ -51,7 +48,6 @@
          (color (lref colors (read cs)))
          (serv (let loop ()
                  (let ((c (open-connection ip *port*)))
-                   (print c)
                    (if c c (begin
                              (print "couldn't connect. retrying.")
                              (sleep 1000)
@@ -62,19 +58,31 @@
      (let loop ((p1 '(0 0)) (rest ()) (fctr 0) (ping 0))
        (lets ((mp (map (λ (x) (max 0 x)) (mouse-pos)))
               (pl pl-c (maybe-get-player serv))
-              (rest (if pl (append (filter (λ (x) (not (= (car x) pl-c))) rest) (list (list pl-c pl))) rest))
-              (fctr (if (>= fctr (/ (fps*) packets/s))
+              (rest (if pl
+                        (append (filter (λ (x) (not (= (car x) pl-c))) rest)
+                                (let* ((L (assoc pl-c rest))
+                                       (lastp (L~ (cadr* L))))
+                                  (list (list pl-c
+                                              pl
+                                              lastp
+                                              ;; (vec2- pl lastp)
+                                              ;; (time-ms)
+                                              ))))
+                        rest))
+              (fctr (if (>= fctr (/ (fps) packets/s))
                         (if (equal? mp p1) 0
                             (begin (send-pos serv mp color) 0))
                         (+ 1 fctr)))
               (M (ref (check-mail) 2))
               (ping (if (eqv? (car* M) 'ping) (cdr M) ping)))
-
          (draw
           (clear-background black)
           (draw-circle mp 8 color)
           (for-each
-           (λ (v) (draw-circle (cadr v) 6 (car v)))
+           (λ (v)
+             (when (caddr v)
+               (draw-line (cadr v) (caddr v) (car v)))
+             (draw-circle (cadr v) 6 (car v)))
            rest)
           (draw-text-simple (string-append "ping " (number->string ping) "ms") '(0 0) 22 white))
 
