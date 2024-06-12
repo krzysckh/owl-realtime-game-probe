@@ -16,20 +16,22 @@
   (if (ping? l) (mail 'pinger #t) #f))
 
 (define (maybe-get-player c)
-  (if (readable? c)
-      (let ((l (bytevector->list (get-whole-block c *block-size*))))
-        (if (maybe-pinger l)
-            (values #f #f)
-            (let ((color (u32->n l))
-                  (p (cddddr l)))
-              (values (list (u32->n p) (u32->n (cddddr p))) color))))
-      (values #f #f)))
+  (let ((bv (try-get-block c *block-size* #f)))
+    (if (bytevector? bv)
+        (let ((l (bytevector->list bv)))
+          (if (maybe-pinger l)
+              (values #f #f)
+              (let ((color (u32->n l))
+                    (p (cddddr l)))
+                (values (list (u32->n p) (u32->n (cddddr p))) color))))
+        (values #f #f))))
 
 (define (L~ v) (if v v '(0 0)))
 (define (cadr* l) (car* (cdr* l)))
 
 (define ip (bytevector 127 0 0 1))
-(define ip (sys/resolve-host "pub.krzysckh.org"))
+;; (define ip (sys/resolve-host "pub.krzysckh.org"))
+;; (define ip (sys/resolve-host "krzysckh.org"))
 
 (define (pinger c)
   (let loop ()
@@ -42,13 +44,17 @@
         (loop)))))
 
 ;; (define packets/s ())
-(define packets/s 100)
+(define packets/s 50)
 (define (main args)
   (set-target-fps! 120)
-  (let* ((cs (let ((v (car* (cdr args)))) (if (null? v) "3" v)))
+  (set-config-flags! flag-window-resizable)
+  (let* ((argv0 (lref args 0)) ;; TODO: parse args
+         (cs (let ((v (car* (cdr* args)))) (if (null? v) "3" v)))
+         (host (sys/resolve-host
+              (let ((v (car* (cdr* (cdr* args))))) (if (null? v) "localhost" v))))
          (color (lref colors (read cs)))
          (serv (let loop ()
-                 (let ((c (open-connection ip *port*)))
+                 (let ((c (open-connection host *port*)))
                    (if c c (begin
                              (print "couldn't connect. retrying.")
                              (sleep 1000)
