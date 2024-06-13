@@ -43,8 +43,7 @@
                                (if (ping? l)
                                    (begin
                                      (print "SERVER: got ping from " p)
-                                     (write-bytes p (make-list *block-size* 1))
-                                     )
+                                     (write-bytes p (make-list *block-size* 1)))
                                    (send-to-all-but p ports l))))
                          (loop ports threads))))))
                (for-each (λ (v) (mail v (cons 'threads threads))) threads)

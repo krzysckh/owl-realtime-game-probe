@@ -1,3 +1,5 @@
+[windows binaries](https://pub.krzysckh.org/owl-rgp/).
+
 deps:
   * [raylib-owl](https://github.com/krzysckh/raylib-owl/)
 
